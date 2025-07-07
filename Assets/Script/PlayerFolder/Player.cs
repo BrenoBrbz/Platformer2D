@@ -27,15 +27,15 @@ public class Player : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.A))
         {
-            myRigidbody.velocity = new Vector2(-speed, myRigidbody.velocity.y);
+            myRigidbody.linearVelocity = new Vector2(-speed, myRigidbody.linearVelocity.y);
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            myRigidbody.velocity = new Vector2(speed, myRigidbody.velocity.y);
+            myRigidbody.linearVelocity = new Vector2(speed, myRigidbody.linearVelocity.y);
         }
         else
         {
-            myRigidbody.velocity = new Vector2(0, myRigidbody.velocity.y);
+            myRigidbody.linearVelocity = new Vector2(0, myRigidbody.linearVelocity.y);
         }
     }
 
@@ -43,7 +43,7 @@ public class Player : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            myRigidbody.velocity = new Vector2(myRigidbody.velocity.x, forceJump);
+            myRigidbody.linearVelocity = new Vector2(myRigidbody.linearVelocity.x, forceJump);
             transform.localScale = Vector3.one;
 
             DOTween.Kill(myRigidbody.transform);

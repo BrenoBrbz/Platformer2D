@@ -1,59 +1,89 @@
 using UnityEngine;
-using DG.Tweening;
 
 public class Player : MonoBehaviour
 {
     Rigidbody2D myRigidbody;
+    Animator animator;
+
     public float speed = 5f;
     public float forceJump = 5f;
-    public float jumpScaleY = 1.5f;
-    public float jumpScaleX = 0.7f;
-    public Ease ease = Ease.OutBack;
+    private Vector3 originalScale;
 
-    public float animationduration = 0.3f;
+    private bool hasJumped = false; // controla se já apertou espaço
 
     void Start()
     {
         myRigidbody = GetComponent<Rigidbody2D>();
+
+        animator = GetComponent<Animator>();
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        originalScale = transform.localScale;
     }
 
     void Update()
     {
         Walk();
         Jump();
+        UpdateJumpAnimation();
     }
 
     private void Walk()
     {
+        float move = 0f;
+
         if (Input.GetKey(KeyCode.A))
         {
-            myRigidbody.linearVelocity = new Vector2(-speed, myRigidbody.linearVelocity.y);
+            move = -speed;
+            if (transform.localScale.x > 0)
+                transform.localScale = new Vector3(-Mathf.Abs(originalScale.x), transform.localScale.y, transform.localScale.z);
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            myRigidbody.linearVelocity = new Vector2(speed, myRigidbody.linearVelocity.y);
+            move = speed;
+            if (transform.localScale.x < 0)
+                transform.localScale = new Vector3(Mathf.Abs(originalScale.x), transform.localScale.y, transform.localScale.z);
         }
-        else
+
+        // aplica movimento horizontal
+        myRigidbody.velocity = new Vector2(move, myRigidbody.velocity.y);
+
+        // animação de andar
+        if (animator != null && !hasJumped)
         {
-            myRigidbody.linearVelocity = new Vector2(0, myRigidbody.linearVelocity.y);
+            bool isWalking = move != 0;
+            animator.SetBool("isWalking", isWalking);
         }
     }
 
     private void Jump()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && !hasJumped)
         {
-            myRigidbody.linearVelocity = new Vector2(myRigidbody.linearVelocity.x, forceJump);
-            transform.localScale = Vector3.one;
+            myRigidbody.velocity = new Vector2(myRigidbody.velocity.x, forceJump);
 
-            DOTween.Kill(myRigidbody.transform);
+            hasJumped = true;
 
-            ScaleJump();
+            if (animator != null)
+            {
+                animator.SetBool("isWalking", false);
+                animator.SetBool("isJumping", true); // ativa animação de pulo
+            }
         }
     }
-    private void ScaleJump()
+
+    private void UpdateJumpAnimation()
     {
-        myRigidbody.transform.DOScaleY(jumpScaleY, animationduration).SetLoops(2, LoopType.Yoyo).SetEase(ease);
-        myRigidbody.transform.DOScaleX(jumpScaleX, animationduration).SetLoops(2, LoopType.Yoyo).SetEase(ease);      
+        // se o personagem estiver caindo ou parado na Y, considera que caiu
+        if (hasJumped && myRigidbody.velocity.y <= 0f)
+        {
+            hasJumped = false;
+
+            if (animator != null)
+            {
+                animator.SetBool("isJumping", false);
+            }
+        }
     }
 }
